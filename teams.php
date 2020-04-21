@@ -111,7 +111,7 @@ class TeamsPlugin extends Plugin {
 
         try {
             // Build the payload with the formatted data:
-            $payload = $this->createJsonMessage($ticket, $type);
+            $payload = $this->createJsonMessage($ticket, $type, $body);
 
             // Setup curl
             $ch = curl_init($url);
@@ -216,7 +216,7 @@ class TeamsPlugin extends Plugin {
      * @param $messageBody
      * @return false|string
      */
-    private function createJsonMessage($ticket, $type = null, $messageBody)
+    private function createJsonMessage($ticket, $type = null, $messageBody = '')
     {
         global $cfg;
 
