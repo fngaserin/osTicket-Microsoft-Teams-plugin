@@ -4,11 +4,11 @@ osTicket-microsoft-teams
 ==============
 An plugin for [osTicket](https://osticket.com) which posts notifications to a [Microsoft Teams](https://products.office.com/en-us/microsoft-teams/group-chat-software) channel.
 
-Originally forked from: [https://github.com/clonemeagain/osticket-slack](https://github.com/clonemeagain/osticket-slack).
+Originally forked from: [https://github.com/ipavlovi/osTicket-Microsoft-Teams-plugin](https://github.com/ipavlovi/osTicket-Microsoft-Teams-plugin).
 
 Info
 ------
-This plugin uses CURL and was designed/tested with osTicket-1.10.1
+This plugin uses CURL and has been tested with osTicket-1.14.1
 
 ## Requirements
 - php_curl
@@ -23,7 +23,7 @@ This plugin uses CURL and was designed/tested with osTicket-1.10.1
 5. After that, go back to the list of plugins and tick the checkbox next to "MS Teams Notifier" and select the "Enable" button.
 
 ## MS Teams Setup:
-- Open MS Teams, navigate to channel and open COnnectors from elipsoids (...) menu
+- Open MS Teams, navigate to channel and open Connectors from ellipsis (...) menu
 - Select Incoming Webhook and configure
 - Choose webhook name and optionally change associated image
 - Click Create
@@ -31,12 +31,11 @@ This plugin uses CURL and was designed/tested with osTicket-1.10.1
 
 The channel you select will receive an event notice, like:
 ```
-Ivan Pavlovic has set up a connection to Incoming Webhook so group members will be notified for this configuration with name osTicket
-```
-
 
 ## Test!
 Create a ticket!
 
 Notes, Replies from Agents and System messages shouldn't appear, usernames are links to the user's page 
 in osTicket, the Ticket subject is a link to the ticket, as is the ticket ID. 
+
+Currently working on getting notification pushed to Teams on Ticket updates.
