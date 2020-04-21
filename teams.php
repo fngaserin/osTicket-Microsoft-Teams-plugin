@@ -36,8 +36,9 @@ class TeamsPlugin extends Plugin {
             error_log("Teams plugin called too early.");
             return;
         }
+        $plaintext = Format::html2text($ticket->getMessages()[0]->getBody()->getClean());
 
-        $this->sendToTeams($ticket, $type);
+        $this->sendToTeams($ticket, $type, $plaintext);
     }
 
     /**
@@ -72,7 +73,8 @@ class TeamsPlugin extends Plugin {
             return;
         }
 
-        $this->sendToTeams($ticket, $type, 'warning');
+        $plaintext = Format::html2text($entry->getBody()->getClean());
+        $this->sendToTeams($ticket, $type, $plaintext);
     }
 
     /**
@@ -83,10 +85,9 @@ class TeamsPlugin extends Plugin {
      * @param Ticket $ticket
      * @param string $heading
      * @param string $body
-     * @param string $colour
      * @throws \Exception
      */
-    function sendToTeams(Ticket $ticket, $type, $colour = 'good') {
+    function sendToTeams(Ticket $ticket, $type, $body) {
         global $ost, $cfg;
         if (!$ost instanceof osTicket || !$cfg instanceof OsticketConfig) {
             error_log("Teams plugin called too early.");
@@ -107,10 +108,11 @@ class TeamsPlugin extends Plugin {
             error_log("$ticket_subject didn't trigger $regex_subject_ignore");
         }
 
-        // Build the payload with the formatted data:
-        $payload = $this->createJsonMessage($ticket, $type);
 
         try {
+            // Build the payload with the formatted data:
+            $payload = $this->createJsonMessage($ticket, $type);
+
             // Setup curl
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -210,32 +212,27 @@ class TeamsPlugin extends Plugin {
 
     /**
      * @param $ticket
-     * @param string $color
      * @param null $type
+     * @param $messageBody
      * @return false|string
      */
-    private function createJsonMessage($ticket, $type = null, $color = 'AFAFAF')
+    private function createJsonMessage($ticket, $type = null, $messageBody)
     {
         global $cfg;
-        if ($ticket->isOverdue()) {
-            $color = 'ff00ff';
-        }
-
-        $plaintext = Format::html2text($ticket->getMessages()[0]->getBody()->getClean());
 
         //Prepare message array to convert to json
-        $message = [
+        $message = array(
             '@type' => 'MessageCard',
             '@context' => 'https://schema.org/extensions',
-            'summary' => 'Ticket: ' . $ticket->getNumber(),
-            'themeColor' => $color,
-            'title' => $this->format_text($type . $ticket->getSubject()),
+            'summary' => $type . '#' . $ticket->getNumber() . ' - ' . $ticket->getSubject(),
+            'themeColor' => '0F2B5B',
+            'title' => $this->format_text($type . '#'.$ticket->getNumber().' - '.$ticket->getSubject()),
             'sections' => array(
                 array(
-                    'activityTitle' => ($ticket->getName() ? $ticket->getName() : 'Guest ') . ' (sent by ' . $ticket->getEmail() . ')',
+                    'activityTitle' => ($ticket->getName() ? $ticket->getName() : 'Guest ') . ' ( ' . $ticket->getEmail() . ')',
                     'activitySubtitle' => $ticket->getUpdateDate(),
                     'activityImage' => $this->get_gravatar($ticket->getEmail()),
-                    'text' => $plaintext,
+                    'text' => $messageBody,
                     'facts' => array(
                         array(
                             'name' => "Assigned To",
@@ -264,7 +261,7 @@ class TeamsPlugin extends Plugin {
                     )
                 )
             )
-        ];
+        );
 
         return json_encode($message, JSON_UNESCAPED_SLASHES);
 
