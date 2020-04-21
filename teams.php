@@ -220,6 +220,9 @@ class TeamsPlugin extends Plugin {
         if ($ticket->isOverdue()) {
             $color = 'ff00ff';
         }
+
+        $plaintext = Format::html2text($ticket->getMessages()[0]->getBody()->getClean());
+
         //Prepare message array to convert to json
         $message = [
             '@type' => 'MessageCard',
@@ -227,25 +230,40 @@ class TeamsPlugin extends Plugin {
             'summary' => 'Ticket: ' . $ticket->getNumber(),
             'themeColor' => $color,
             'title' => $this->format_text($type . $ticket->getSubject()),
-            'sections' => [
-                [
+            'sections' => array(
+                array(
                     'activityTitle' => ($ticket->getName() ? $ticket->getName() : 'Guest ') . ' (sent by ' . $ticket->getEmail() . ')',
                     'activitySubtitle' => $ticket->getUpdateDate(),
                     'activityImage' => $this->get_gravatar($ticket->getEmail()),
-                ],
-            ],
-            'potentialAction' => [
-                [
+                    'text' => $plaintext,
+                    'facts' => array(
+                        array(
+                            'name' => "Assigned To",
+                            'value' => $ticket->getAssigned()
+                        ),
+                        array(
+                            'name' => 'Estimated Due Date',
+                            'value' => $ticket->getEstDueDate()
+                        ),
+                        array(
+                            'name' => 'Status',
+                            'value' => $ticket->getStatus()->getValue()
+                        )
+                    )
+                ),
+            ),
+            'potentialAction' => array(
+                array(
                     '@type' => 'OpenUri',
                     'name' => 'View in osTicket',
-                    'targets' => [
-                        [
+                    'targets' => array(
+                        array(
                             'os' => 'default',
                             'uri' => $cfg->getUrl() . '/scp/tickets.php?id=' . $ticket->getId(),
-                        ]
-                    ]
-                ]
-            ]
+                        )
+                    )
+                )
+            )
         ];
 
         return json_encode($message, JSON_UNESCAPED_SLASHES);
